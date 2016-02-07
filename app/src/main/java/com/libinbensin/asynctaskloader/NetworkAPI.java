@@ -1,5 +1,6 @@
 package com.libinbensin.asynctaskloader;
 
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
@@ -17,9 +18,11 @@ public class NetworkAPI {
     private RestTemplate mRestTemplate;
 
     NetworkAPI(){
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+        factory.setReadTimeout(30000); // 30 seconds
+        factory.setConnectTimeout(30000); // 30 seconds
         // Create a new RestTemplate instance
-        mRestTemplate = new RestTemplate();
-
+        mRestTemplate = new RestTemplate(factory);
         // Add the String message converter
         mRestTemplate.getMessageConverters().add(new StringHttpMessageConverter());
         mRestTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
@@ -27,12 +30,16 @@ public class NetworkAPI {
 
 
     public Book getBooks(){
-        String url = "http://api.libinbensin/books";
-        Map<String, String> urlVariables = new HashMap<>();
-        urlVariables.put("name" , "libin");
-        // Make the HTTP GET request, marshaling the response to a String
-        Book result = mRestTemplate.getForObject(url, Book.class, urlVariables);
-        return result;
+
+        try {
+            String url = "http://api.libinbensin.com/books";
+            Map<String, String> urlVariables = new HashMap<>();
+            urlVariables.put("name" , "libin");
+            // Make the HTTP GET request, marshaling the response to a String
+            return mRestTemplate.getForObject(url, Book.class, urlVariables);
+        }catch (Exception e) {
+            return null;
+        }
     }
 
 }
